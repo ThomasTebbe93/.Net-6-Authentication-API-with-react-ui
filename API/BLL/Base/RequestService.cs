@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using API.BLL.Helper;
 using API.BLL.UseCases.Memberships.Entities;
 using API.BLL.UseCases.Memberships.Services;
 using API.BLL.Extensions;
+using API.BLL.UseCases.Authentication.Services;
 using API.BLL.UseCases.RolesAndRights.Daos;
 using Microsoft.AspNetCore.Http;
 
@@ -11,23 +13,26 @@ namespace API.BLL.Base
 {
     public interface IRequestService
     {
-        Context GetContextByHttpContext(HttpContext context);
+        Task<Context> GetContextByHttpContext(HttpContext context);
     }
 
     public class RequestService : IRequestService
     {
         private readonly IUserService userService;
         private readonly IRightDao rightDao;
+        private readonly IAuthenticationService authenticationService;
 
         public RequestService(
             IUserService userService,
-            IRightDao rightDao)
+            IRightDao rightDao,
+            IAuthenticationService authenticationService)
         {
             this.userService = userService;
             this.rightDao = rightDao;
+            this.authenticationService = authenticationService;
         }
 
-        public Context GetContextByHttpContext(HttpContext context)
+        public async Task<Context> GetContextByHttpContext(HttpContext context)
         {
             var userIdent =
                 new UserIdent(new Guid(context.User.Identity?.Name ?? throw new HttpResponseException(401)));
@@ -37,6 +42,9 @@ namespace API.BLL.Base
             
             if (userIdent == Guid.Empty.ToIdent<UserIdent>())
             {
+                var adminAuthUser = authenticationService.GetSuperVisorAuthUser();
+                await authenticationService.SetCookie(adminAuthUser, context);
+                
                 return new Context()
                 {
                     User = new User()
@@ -61,6 +69,16 @@ namespace API.BLL.Base
             if (passwordChangeDate < currentUser.PasswordChangedDate)
             {
                 throw new HttpResponseException(401);
+            }
+            
+            if (context.User.Identity.AuthenticationType == "Cookies")
+            {
+                var authUser = authenticationService.GetAuthUser(currentUser);
+                await authenticationService.SetCookie(authUser, context);
+                return new Context()
+                {
+                    User = currentUser,
+                };;
             }
 
             return new Context()

@@ -3,6 +3,7 @@ import { AuthenticationUser } from "../types/user";
 import { requestService } from "./requestService";
 import { history } from "../helpers/history";
 import { RequestResult } from "../types/requestResult";
+import { userSettingsService } from "./userSettingsService";
 
 const getUserSettingsFromLocalStorage = () => {
     const settings = localStorage.getItem("currentUser");
@@ -32,6 +33,7 @@ function login(userName: string, password: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName: userName, password: password }),
+        credentials: "include" as RequestCredentials,
     };
     return requestService
         .login<AuthenticationUser | RequestResult>(requestOptions)
@@ -66,4 +68,10 @@ function logout() {
     localStorage.clear();
     currentUserSubject.next(null);
     history.push("/login");
+    requestService.logout(() => {
+        localStorage.clear();
+        currentUserSubject.next(null);
+        userSettingsService.setValueSelcetedSideBarElement(null);
+        history.push("/login");
+    });
 }

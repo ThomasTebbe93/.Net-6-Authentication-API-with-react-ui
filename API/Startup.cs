@@ -18,6 +18,7 @@ using API.DAL.UseCases.RolesAndRights;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
@@ -44,10 +45,7 @@ namespace API
             // configure strongly typed settings objects
             var appSettingsSection = Configuration.GetSection("AppSettings");
             services.Configure<AppSettings>(appSettingsSection);
-            services.Configure<IISServerOptions>(options =>
-            {
-                options.MaxRequestBodySize = int.MaxValue;
-            });
+            services.Configure<IISServerOptions>(options => { options.MaxRequestBodySize = int.MaxValue; });
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.Limits.MaxRequestBodySize = int.MaxValue; // if don't set default value is: 30 MB
@@ -60,16 +58,9 @@ namespace API
             });
             var appSettings = appSettingsSection.Get<AppSettings>();
 
-            // configure DbConnection
-            var connection = appSettings.DbConnection;
-
             // configure jwt authentication
             var key = Encoding.ASCII.GetBytes(appSettings.Secret);
-            services.AddAuthentication(x =>
-                {
-                    x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
+            services.AddAuthentication()
                 .AddJwtBearer(x =>
                 {
                     x.RequireHttpsMetadata = false;
@@ -83,6 +74,14 @@ namespace API
                         ValidateLifetime = true,
                         ClockSkew = TimeSpan.Zero
                     };
+                })
+                .AddCookie(options =>
+                {
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+                    options.SlidingExpiration = true;
+                    options.Cookie.Domain = appSettings.Domain;
+                    options.Cookie.SameSite = SameSiteMode.Strict;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 });
 
             RegisterModules(services);
@@ -91,6 +90,7 @@ namespace API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseCookiePolicy();
             app.UseExceptionHandler("/error");
             app.UseHttpsRedirection();
             app.UseRouting();
@@ -111,21 +111,21 @@ namespace API
             services.AddScoped<IRequestService, RequestService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IRegisterService, RegisterService>();
-            
+
             services.AddScoped<IUserDao, UserDao>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<UserMerger>();
-            
+
             services.AddScoped<IRoleDao, RoleDao>();
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<RoleMerger>();
             services.AddScoped<IRoleRightDao, RoleRightDao>();
-            
+
             services.AddScoped<IRightDao, RightDao>();
-            
+
             services.AddScoped<IFileDao, FileDao>();
             services.AddScoped<IFileService, FileService>();
-            
+
             services.AddScoped<IMailService, MailService>();
         }
     }

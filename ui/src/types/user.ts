@@ -9,7 +9,6 @@ export type User = {
     role: Role;
     password?: string;
     passwordRetyped?: string;
-    token?: string;
 };
 
 export type AuthenticationUser = {
@@ -17,6 +16,5 @@ export type AuthenticationUser = {
     firstName: string;
     lastName: string;
     userName: string;
-    token?: string;
     rights?: List<string>;
 };

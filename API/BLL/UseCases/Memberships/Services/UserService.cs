@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using API.BLL.Base;
 using API.BLL.Helper;
 using API.BLL.UseCases.Authentication.Entities;
@@ -16,6 +17,7 @@ using API.BLL.UseCases.RolesAndRights.Daos;
 using API.BLL.UseCases.RolesAndRights.Entities;
 using API.BLL.UseCases.RolesAndRights.Services;
 using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -29,7 +31,10 @@ namespace API.BLL.UseCases.Memberships.Services
         User FindByIdentForContext(UserIdent userIdent);
         RequestResult DeleteByIdent(Context context, UserIdent ident);
         IActionResult PasswordChange(Context context, UserPasswordChangeRestEntity userPasswordChange);
-        IActionResult ResetPassword(UserPasswordResetSetPasswordRestEntity userPasswordChange);
+
+        Task<IActionResult> ResetPassword(HttpContext context,
+            UserPasswordResetSetPasswordRestEntity userPasswordChange, AuthenticationType authenticationType);
+
         RequestResult SendResetPassword(UserPasswordResetRestEntity login);
         User CheckUserPasswordForgottenHash(UserPasswordForgottenHashConfirmRestEntity data);
         DataTableSearchResult<User> FindBySearchValue(UserSearchOptions search);
@@ -137,7 +142,7 @@ namespace API.BLL.UseCases.Memberships.Services
             var role = user.RoleIdent != null
                 ? roleService.FindByIdent(user.RoleIdent)
                 : new Role();
-            
+
             return new User(user)
             {
                 Role = role
@@ -150,7 +155,7 @@ namespace API.BLL.UseCases.Memberships.Services
             var role = user.RoleIdent != null
                 ? roleService.FindByIdent(user.RoleIdent)
                 : new Role();
-            
+
             return new User(user)
             {
                 Role = role
@@ -223,7 +228,7 @@ namespace API.BLL.UseCases.Memberships.Services
                 {
                     ValidationFailures = new List<ValidationFailure>()
                     {
-                        new ("Password", "validation.error.invalidPassword")
+                        new("Password", "validation.error.invalidPassword")
                     },
                     StatusCode = StatusCode.Unauthorized
                 });
@@ -258,7 +263,10 @@ namespace API.BLL.UseCases.Memberships.Services
             }
         }
 
-        public IActionResult ResetPassword(UserPasswordResetSetPasswordRestEntity userPasswordChange)
+        public async Task<IActionResult> ResetPassword(
+            HttpContext context,
+            UserPasswordResetSetPasswordRestEntity userPasswordChange,
+            AuthenticationType authenticationType)
         {
             var validator = new UserPasswordResetSetPasswordValidator();
 
@@ -290,7 +298,18 @@ namespace API.BLL.UseCases.Memberships.Services
 
                 userDao.Update(new User(updatedUser));
 
-                var authUser = authenticationService.GetAutUser(user);
+                var currentUser = userDao.FindByIdentForContext(user.Ident); // TODO: JWT erneuern wenn nicht über cookie
+                var authUser = authenticationService.GetAuthUser(currentUser);
+
+                switch (authenticationType)
+                {
+                    case AuthenticationType.Cookie:
+                        await authenticationService.SetCookie(authUser, context);
+                        break;
+                    case AuthenticationType.Jwt:
+                        authUser.Token = authenticationService.GenerateToken(authUser);
+                        break;
+                }
 
                 return new OkObjectResult(authUser);
             }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using API.BLL.Base;
+using API.BLL.UseCases.Authentication.Entities;
 using API.BLL.UseCases.Authentication.Services;
 using API.BLL.UseCases.Memberships.Entities;
 using API.BLL.UseCases.Memberships.Services;
@@ -46,10 +48,16 @@ namespace API.BLL.UseCases.Memberships.Controller
             userService.PasswordChange(Context, userPasswordChange);
 
         [AllowAnonymous]
-        [HttpPost("resetPassword")]
+        [HttpPost("resetPasswordJwt")]
         [ActionName("JSONMethod")]
-        public IActionResult ResetPassword(UserPasswordResetSetPasswordRestEntity userPasswordReset)
-            => userService.ResetPassword(userPasswordReset);
+        public async Task<IActionResult> ResetPasswordJwt(UserPasswordResetSetPasswordRestEntity userPasswordReset)
+            => await userService.ResetPassword(HttpContext, userPasswordReset, AuthenticationType.Jwt);
+        
+        [AllowAnonymous]
+        [HttpPost("resetPasswordCookie")]
+        [ActionName("JSONMethod")]
+        public async Task<IActionResult> ResetPasswordCookie(UserPasswordResetSetPasswordRestEntity userPasswordReset)
+            => await userService.ResetPassword(HttpContext, userPasswordReset, AuthenticationType.Cookie);
 
         [AllowAnonymous]
         [HttpPost("sendResetPassword")]

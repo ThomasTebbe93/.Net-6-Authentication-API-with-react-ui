@@ -5,6 +5,7 @@ namespace API.BLL.Helper
         public string[] BasUrls { get; set; }
         public string Secret { get; set; }
         public string BasePath { get; set; }
+        public string Domain { get; set; }
         public string BaseUrl { get; set; }
         public string BaseUrlApi { get; set; }
         public string BaseUrlOffice { get; set; }

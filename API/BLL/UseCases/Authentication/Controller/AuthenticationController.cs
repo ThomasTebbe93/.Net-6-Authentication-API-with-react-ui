@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using API.BLL.Base;
 using API.BLL.UseCases.Authentication.Entities;
 using API.BLL.UseCases.Authentication.Services;
@@ -31,6 +32,11 @@ namespace API.BLL.UseCases.Authentication.Controller
         [HttpPost("authenticate")]
         public IActionResult Authenticate(AuthenticationRestEntity userParam) =>
             authenticationService.Authenticate(userParam.UserName, userParam.Password);
+        
+        [AllowAnonymous]
+        [HttpPost("authenticateWithCookie")]
+        public async Task<IActionResult> AuthenticateWithCookie(AuthenticationRestEntity userParam)
+            => await authenticationService.AuthenticateWithCookie(userParam.UserName, userParam.Password, HttpContext);
 
         [AllowAnonymous]
         [HttpPost("checkUserPasswordForgottenHash")]

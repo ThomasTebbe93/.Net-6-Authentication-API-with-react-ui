@@ -124,7 +124,6 @@ namespace API.BLL.UseCases.RolesAndRights.Services
             };
         }
 
-        
         private List<RoleRestEntity> Enrich(List<RoleRestEntity> roles)
         {
             var rights = rightDao.FindAll();
@@ -143,9 +142,10 @@ namespace API.BLL.UseCases.RolesAndRights.Services
         public Role FindByIdent(RoleIdent ident)
         {
             var role = roleDao.FindByIdent(ident);
-
-            var roleRightsIdents = roleRightDao.FindByCustomRoleIdent(role.Ident)
-                .Select(x => x.RightIdent).ToHashSet();
+            var roleRightsIdents = roleRightDao
+                .FindByCustomRoleIdent(role.Ident)
+                .Select(x => x.RightIdent)
+                .ToHashSet();
             var roleRights = rightDao.FindByIdents(roleRightsIdents).ToList();
 
             return new Role(role)

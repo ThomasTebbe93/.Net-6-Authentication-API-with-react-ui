@@ -107,7 +107,7 @@ export default function PasswordForgotten() {
                 return response.json();
             })
             .then((res: RequestResult | AuthenticationUser) => {
-                if ((res as AuthenticationUser).token) {
+                if (res as AuthenticationUser) {
                     authenticationService.renewUser(res as AuthenticationUser);
                     setValidationFailures(null);
                     history.replace("/dashboard");
