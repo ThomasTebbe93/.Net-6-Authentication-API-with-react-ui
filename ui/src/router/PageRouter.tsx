@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { Context, ReactNode } from "react";
 import { Router, Switch, Route } from "react-router-dom";
 import Login from "../pages/login/Login";
 import Base from "../pages/office/Base";
@@ -9,6 +9,9 @@ import PasswordForgotten from "../pages/office/memberchip/PasswordForgotten";
 
 interface PageRouterProps {
     children?: ReactNode;
+    colorModeContext: Context<{
+        toggleColorMode: () => void;
+    }>;
 }
 
 export default function PageRouter(props: PageRouterProps) {
@@ -21,7 +24,12 @@ export default function PageRouter(props: PageRouterProps) {
                     path="/authentication/passwordForgotten"
                     component={PasswordForgotten}
                 ></Route>
-                <PrivateRoute path="" component={Base}></PrivateRoute>
+                <PrivateRoute
+                    path=""
+                    component={() =>
+                        Base({ colorModeContext: props.colorModeContext })
+                    }
+                ></PrivateRoute>
             </Switch>
         </Router>
     );

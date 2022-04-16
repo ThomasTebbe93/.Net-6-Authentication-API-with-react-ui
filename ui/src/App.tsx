@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { createContext, Suspense, useMemo, useState } from "react";
 import {
     createStyles,
     createTheme,
@@ -9,27 +9,43 @@ import {
 import { MuiPickersUtilsProvider } from "@material-ui/pickers";
 import DateFnsUtils from "@date-io/date-fns";
 import PageRouter from "./router/PageRouter";
+import { PaletteType } from "@material-ui/core";
 
-const theme = createTheme({
+const getDesignTokens = (mode: PaletteType) => ({
     palette: {
-        type: "light",
-        primary: {
-            main: "#04acf3", // TODO: change to your primary-color
-        },
-        secondary: {
-            main: "#0cd444", // TODO: change to your secondary-color
-        },
-        warning: {
-            main: "#fb7c24", // TODO: change to your warning-color
-        },
-        background: {
-            default: "#111111",
-            paper: "#222222",
-        },
-        text: {
-            primary: "#333333",
-            secondary: "#bbbbbb",
-        },
+        ...(mode === "light"
+            ? {
+                  type: "light" as PaletteType,
+                  primary: {
+                      main: "#04acf3", // TODO: change to your primary-color
+                  },
+                  secondary: {
+                      main: "#0cd444", // TODO: change to your secondary-color
+                  },
+                  warning: {
+                      main: "#fb7c24", // TODO: change to your warning-color
+                  },
+              }
+            : {
+                  type: "dark" as PaletteType,
+                  primary: {
+                      main: "#04acf3", // TODO: change to your primary-color
+                  },
+                  secondary: {
+                      main: "#0cd444", // TODO: change to your secondary-color
+                  },
+                  warning: {
+                      main: "#fb7c24", // TODO: change to your warning-color
+                  },
+                  background: {
+                      default: "#111111",
+                      paper: "#222222",
+                  },
+                  text: {
+                      primary: "#333333",
+                      secondary: "#bbbbbb",
+                  },
+              }),
     },
 });
 
@@ -41,17 +57,35 @@ const useStyles = makeStyles((theme: Theme) =>
         },
     })
 );
+
 export default function App() {
     const classes = useStyles();
+    const [mode, setMode] = useState<PaletteType>("light");
+    const colorMode = useMemo(
+        () => ({
+            toggleColorMode: () => {
+                setMode((prevMode: PaletteType) =>
+                    prevMode === "light" ? "dark" : "light"
+                );
+            },
+        }),
+        []
+    );
+
+    const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+    const ColorModeContext = createContext({ toggleColorMode: () => {} });
+
     return (
         <Suspense fallback="loading">
-            <ThemeProvider theme={theme}>
-                <div className={classes.app}>
-                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                        <PageRouter />
-                    </MuiPickersUtilsProvider>
-                </div>
-            </ThemeProvider>
+            <ColorModeContext.Provider value={colorMode}>
+                <ThemeProvider theme={theme}>
+                    <div className={classes.app}>
+                        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                            <PageRouter colorModeContext={ColorModeContext} />
+                        </MuiPickersUtilsProvider>
+                    </div>
+                </ThemeProvider>
+            </ColorModeContext.Provider>
         </Suspense>
     );
 }

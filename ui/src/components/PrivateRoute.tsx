@@ -13,7 +13,6 @@ export default function PrivateRoute({
     let location = useLocation();
 
     const currentUser = authenticationService.currentUserValue;
-    debugger;
 
     if (!currentUser || (right && !currentUser?.rights?.includes(right))) {
         return <Redirect to={{ pathname: "/login", state: location.state }} />;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Context, useContext, useState } from "react";
 import {
     createStyles,
     makeStyles,
@@ -16,6 +16,8 @@ import Avatar from "@material-ui/core/Avatar/Avatar";
 import { authenticationService } from "../../services/authenticationService";
 import { ReactComponent as Icon } from "../../images/logo/logo.svg";
 import { useTranslation } from "react-i18next";
+import Brightness4Icon from "@material-ui/icons/Brightness4";
+import Brightness7Icon from "@material-ui/icons/Brightness7";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -92,12 +94,16 @@ interface MenuAppBarProps {
     changeSidebarCollaption: () => void;
     isSidebarCollaped: boolean;
     useMobile: boolean;
+    colorModeContext: Context<{
+        toggleColorMode: () => void;
+    }>;
 }
 
 export default function MenuAppBar({
     changeSidebarCollaption,
     isSidebarCollaped,
     useMobile,
+    colorModeContext,
 }: MenuAppBarProps) {
     const { t } = useTranslation();
     const classes = useStyles();
@@ -118,6 +124,8 @@ export default function MenuAppBar({
         handleClose();
         authenticationService.logout();
     };
+
+    const colorMode = useContext(colorModeContext);
 
     return (
         <div className={classes.root}>
@@ -218,6 +226,16 @@ export default function MenuAppBar({
                                 className={classes.menuItem}
                             >
                                 {t("common.logout")}
+                            </MenuItem>
+                            <MenuItem
+                                onClick={colorMode.toggleColorMode}
+                                className={classes.menuItem}
+                            >
+                                {theme.palette.type === "dark" ? (
+                                    <Brightness7Icon />
+                                ) : (
+                                    <Brightness4Icon />
+                                )}
                             </MenuItem>
                         </Menu>
                     </div>

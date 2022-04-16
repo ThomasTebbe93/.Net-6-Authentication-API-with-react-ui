@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Context, useEffect, useState } from "react";
 import PrivateRoute from "../../components/PrivateRoute";
 import Dashboard from "./contentPages/Dashboard";
 import InfoPage from "./contentPages/InfoPage";
@@ -16,7 +16,13 @@ import {
 } from "@material-ui/core";
 import { Rights } from "../../helpers/rights";
 
-export default function Base() {
+interface BaseProps {
+    colorModeContext: Context<{
+        toggleColorMode: () => void;
+    }>;
+}
+
+export default function Base(props: BaseProps) {
     const theme = useTheme();
     const useMobile = useMediaQuery(theme.breakpoints.down("sm")) ?? true;
     const [isSidebarCollaped, setIsSidebarCollaped] =
@@ -66,6 +72,7 @@ export default function Base() {
                 useMobile={useMobile}
                 changeSidebarCollaption={changeCollaption}
                 isSidebarCollaped={isSidebarCollaped}
+                colorModeContext={props.colorModeContext}
             />
             <SideBar
                 isSidebarCollaped={isSidebarCollaped}
