@@ -17,10 +17,10 @@ const getDesignTokens = (mode: PaletteType) => ({
             ? {
                   type: "light" as PaletteType,
                   primary: {
-                      main: "#04acf3", // TODO: change to your primary-color
+                      main: "#04acf3", // TODO: change to your primary-color #fb7c24
                   },
                   secondary: {
-                      main: "#0cd444", // TODO: change to your secondary-color
+                      main: "#fb7c24", // TODO: change to your secondary-color
                   },
                   warning: {
                       main: "#fb7c24", // TODO: change to your warning-color
@@ -32,18 +32,10 @@ const getDesignTokens = (mode: PaletteType) => ({
                       main: "#04acf3", // TODO: change to your primary-color
                   },
                   secondary: {
-                      main: "#0cd444", // TODO: change to your secondary-color
+                      main: "#fb7c24", // TODO: change to your secondary-color
                   },
                   warning: {
                       main: "#fb7c24", // TODO: change to your warning-color
-                  },
-                  background: {
-                      default: "#111111",
-                      paper: "#222222",
-                  },
-                  text: {
-                      primary: "#333333",
-                      secondary: "#bbbbbb",
                   },
               }),
     },

@@ -60,7 +60,6 @@ export default function RoleTable({
         ) ?? false;
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
     const [data, setData] = useState<List<Role> | null>(null);
     const [totalRowCount, setTotalRowCount] = useState<number>(0);
     const [searchOptions, setSearchOptions] = useState<roleSearchOptions>({
@@ -106,7 +105,6 @@ export default function RoleTable({
                 setData(res.data);
                 setTotalRowCount(res.totalRowCount);
                 setIsLoading(false);
-                setIsFirstLoad(false);
             });
     }, [searchOptions, refreshCount]);
 
@@ -155,7 +153,6 @@ export default function RoleTable({
             createData={createData}
             onRowClick={onRowClick}
             isLoading={isLoading}
-            isFirstLoad={isFirstLoad}
             data={data}
             totalRowCount={totalRowCount}
             columns={columns}

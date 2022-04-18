@@ -68,7 +68,6 @@ export default function UserTable({
         ) ?? false;
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
     const [data, setData] = useState<List<User> | null>(null);
     const [totalRowCount, setTotalRowCount] = useState<number>(0);
     const [searchOptions, setSearchOptions] = useState<UserSearchOptions>({
@@ -140,7 +139,6 @@ export default function UserTable({
                 setData(res.data);
                 setTotalRowCount(res.totalRowCount);
                 setIsLoading(false);
-                setIsFirstLoad(false);
             });
     }, [searchOptions, refreshCount]);
 
@@ -220,7 +218,6 @@ export default function UserTable({
             createData={createData}
             onRowClick={onRowClick}
             isLoading={isLoading}
-            isFirstLoad={isFirstLoad}
             data={data}
             totalRowCount={totalRowCount}
             columns={columns}

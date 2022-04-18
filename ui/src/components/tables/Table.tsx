@@ -13,9 +13,9 @@ import EditIcon from "@material-ui/icons/Edit";
 import DeleteIcon from "@material-ui/icons/Delete";
 import ExpandLess from "@material-ui/icons/ExpandLess";
 import ExpandMore from "@material-ui/icons/ExpandMore";
-import LoadingBars from "../loadingAnimations/LoadingBars";
 import { List } from "immutable";
 import { useTranslation } from "react-i18next";
+import TableSkeleton from "../loadingAnimations/TableSkeleton";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -42,7 +42,6 @@ interface Props {
     onRowClick: (data: any) => void;
     onDeleteClick?: (data: any) => void;
     isLoading: boolean;
-    isFirstLoad: boolean;
     data: any;
     totalRowCount: number;
     columns: TableColumn[];
@@ -88,7 +87,6 @@ export default function StickyHeadTable({
     onDeleteClick,
     createData,
     isLoading,
-    isFirstLoad,
     data,
     totalRowCount,
     columns,
@@ -161,22 +159,6 @@ export default function StickyHeadTable({
 
     return (
         <Paper className={classes.root} style={{ position: "relative" }}>
-            {isLoading && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: 74,
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        backgroundColor: "#ccccccc0",
-                        zIndex: 1,
-                        height: isFirstLoad ? 260 : undefined,
-                    }}
-                >
-                    <LoadingBars />
-                </div>
-            )}
             <TableContainer>
                 <Table aria-label="sticky table">
                     <TableHead>
@@ -295,30 +277,70 @@ export default function StickyHeadTable({
                             )}
                         </TableRow>
                     </TableHead>
+                    {isLoading && (
+                        <TableSkeleton
+                            rowNumber={10}
+                            columns={columns}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
+                            extraActions={extraActions}
+                        />
+                    )}
                     <TableBody>
-                        {rows?.map((row: any) => {
-                            return (
-                                <TableRow
-                                    key={row?.data?.ident?.ident}
-                                    hover
-                                    role="checkbox"
-                                    tabIndex={-1}
-                                    onClick={(
-                                        event: React.MouseEvent<
-                                            HTMLTableRowElement,
-                                            MouseEvent
-                                        >
-                                    ) => rowClick(event, row.data)}
-                                >
-                                    {columns.map((column) =>
-                                        column.element(row, column)
-                                    )}
-                                    {extraActions?.map(
-                                        (rowAction: RowAction) => (
+                        {!isLoading &&
+                            rows?.map((row: any) => {
+                                return (
+                                    <TableRow
+                                        key={row?.data?.ident?.ident}
+                                        hover
+                                        role="checkbox"
+                                        tabIndex={-1}
+                                        onClick={(
+                                            event: React.MouseEvent<
+                                                HTMLTableRowElement,
+                                                MouseEvent
+                                            >
+                                        ) => rowClick(event, row.data)}
+                                    >
+                                        {columns.map((column) =>
+                                            column.element(row, column)
+                                        )}
+                                        {extraActions?.map(
+                                            (rowAction: RowAction) => (
+                                                <TableCell
+                                                    key={`${row?.data?.ident?.ident}_${rowAction.key}`}
+                                                    align="center"
+                                                    style={{ padding: 5 }}
+                                                >
+                                                    <div
+                                                        className={
+                                                            classes.rowAction
+                                                        }
+                                                        onClick={(
+                                                            event: React.MouseEvent<
+                                                                HTMLDivElement,
+                                                                MouseEvent
+                                                            >
+                                                        ) =>
+                                                            rowAction.onClick(
+                                                                event,
+                                                                row.data
+                                                            )
+                                                        }
+                                                    >
+                                                        {rowAction.icon}
+                                                    </div>
+                                                </TableCell>
+                                            )
+                                        )}
+                                        {canEdit && (
                                             <TableCell
-                                                key={`${row?.data?.ident?.ident}_${rowAction.key}`}
+                                                key={`${row?.data?.ident?.ident}_edit`}
                                                 align="center"
-                                                style={{ padding: 5 }}
+                                                style={{
+                                                    padding: 5,
+                                                    width: 38,
+                                                }}
                                             >
                                                 <div
                                                     className={
@@ -330,109 +352,59 @@ export default function StickyHeadTable({
                                                             MouseEvent
                                                         >
                                                     ) =>
-                                                        rowAction.onClick(
+                                                        rowClick(
                                                             event,
                                                             row.data
                                                         )
                                                     }
                                                 >
-                                                    {rowAction.icon}
+                                                    <EditIcon
+                                                        style={{
+                                                            width: 20,
+                                                            height: 20,
+                                                        }}
+                                                    />
                                                 </div>
                                             </TableCell>
-                                        )
-                                    )}
-                                    {canEdit && (
-                                        <TableCell
-                                            key={`${row?.data?.ident?.ident}_edit`}
-                                            align="center"
-                                            style={{ padding: 5, width: 38 }}
-                                        >
-                                            <div
-                                                className={classes.rowAction}
-                                                onClick={(
-                                                    event: React.MouseEvent<
-                                                        HTMLDivElement,
-                                                        MouseEvent
-                                                    >
-                                                ) => rowClick(event, row.data)}
+                                        )}
+                                        {canDelete && (
+                                            <TableCell
+                                                key={`${row?.data?.ident?.ident}_delete`}
+                                                align="center"
+                                                style={{
+                                                    padding: 5,
+                                                    width: 38,
+                                                }}
                                             >
-                                                <EditIcon
-                                                    style={{
-                                                        width: 20,
-                                                        height: 20,
-                                                    }}
-                                                />
-                                            </div>
-                                        </TableCell>
-                                    )}
-                                    {canDelete && (
-                                        <TableCell
-                                            key={`${row?.data?.ident?.ident}_delete`}
-                                            align="center"
-                                            style={{ padding: 5, width: 38 }}
-                                        >
-                                            <div
-                                                className={classes.rowAction}
-                                                onClick={(
-                                                    event: React.MouseEvent<
-                                                        HTMLDivElement,
-                                                        MouseEvent
-                                                    >
-                                                ) => onDelete(event, row.data)}
-                                            >
-                                                <DeleteIcon
-                                                    style={{
-                                                        width: 20,
-                                                        height: 20,
-                                                    }}
-                                                />
-                                            </div>
-                                        </TableCell>
-                                    )}
-                                </TableRow>
-                            );
-                        })}
+                                                <div
+                                                    className={
+                                                        classes.rowAction
+                                                    }
+                                                    onClick={(
+                                                        event: React.MouseEvent<
+                                                            HTMLDivElement,
+                                                            MouseEvent
+                                                        >
+                                                    ) =>
+                                                        onDelete(
+                                                            event,
+                                                            row.data
+                                                        )
+                                                    }
+                                                >
+                                                    <DeleteIcon
+                                                        style={{
+                                                            width: 20,
+                                                            height: 20,
+                                                        }}
+                                                    />
+                                                </div>
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                );
+                            })}
                     </TableBody>
-                    {isFirstLoad && (
-                        <TableBody>
-                            <TableRow hover role="checkbox" tabIndex={-1}>
-                                {columns.map((column) =>
-                                    column.element(null, column)
-                                )}
-                                {extraActions?.map((rowAction: RowAction) => (
-                                    <TableCell
-                                        key="edit"
-                                        align="center"
-                                        style={{ padding: 5 }}
-                                    >
-                                        {rowAction.icon}
-                                    </TableCell>
-                                ))}
-                                {canEdit && (
-                                    <TableCell
-                                        key="edit"
-                                        align="center"
-                                        style={{ padding: 5 }}
-                                    >
-                                        <EditIcon
-                                            style={{ width: 20, height: 20 }}
-                                        />
-                                    </TableCell>
-                                )}
-                                {canDelete && (
-                                    <TableCell
-                                        key="delete"
-                                        align="center"
-                                        style={{ padding: 5 }}
-                                    >
-                                        <DeleteIcon
-                                            style={{ width: 20, height: 20 }}
-                                        />
-                                    </TableCell>
-                                )}
-                            </TableRow>
-                        </TableBody>
-                    )}
                 </Table>
             </TableContainer>
             <TablePagination
