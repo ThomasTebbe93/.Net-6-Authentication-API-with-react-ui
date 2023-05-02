@@ -14,8 +14,17 @@ export default function PrivateRoute({
 
     const currentUser = authenticationService.currentUserValue;
 
-    if (!currentUser || (right && !currentUser?.rights?.includes(right))) {
+    if (!currentUser || !currentUser.ident) {
         return <Redirect to={{ pathname: "/login", state: location.state }} />;
+    }
+    if (
+        (!!right &&
+            !currentUser.rights?.some(
+                (userRight: string) => userRight === right
+            )) ||
+        false
+    ) {
+        return <Redirect to={{ pathname: "/dashboard" }} />;
     }
 
     return <Route {...rest} render={() => children} />;

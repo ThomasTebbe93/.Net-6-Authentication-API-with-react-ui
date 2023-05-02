@@ -96,7 +96,7 @@ namespace API
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseDbTransaction();
             app.UseCors(x => x
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
